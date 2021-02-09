@@ -1,0 +1,13 @@
+syntax = "proto3";
+option go_package = "github.com/sageflow/sageauth/internal/proto";
+
+
+message Message {
+    string content = 1;
+}
+
+message Empty {}
+
+service AuthService {
+    rpc SayHello(Message) returns (Message);
+}

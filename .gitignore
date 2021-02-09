@@ -1,0 +1,6 @@
+**/.DS_Store
+**/sageflow.config
+public/
+.env
+tmp/
+logs/
