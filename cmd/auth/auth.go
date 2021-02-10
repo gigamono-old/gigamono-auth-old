@@ -9,7 +9,11 @@ import (
 
 func main() {
 	// Initialises app.
-	app := inits.NewApp("Auth")
+	app, err := inits.NewApp("Auth")
+	if err != nil {
+		logs.FmtPrintln("Unable to connect to database; Database is needed to continue: ", err)
+		return
+	}
 
 	// Start an auth gRPC server.
 	server := server.NewAuthServer(app)
