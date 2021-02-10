@@ -1,0 +1,30 @@
+version: 1
+kind: Sageflow
+
+metadata:
+  authors:
+    - name: James Brown
+      email: james@brown.com
+
+execution:
+  use_subprocess: true
+
+server:
+  api:
+    port: 3000
+  engine:
+    port: 3001
+  auth:
+    port: 3002
+
+database:
+  resource:
+    uri: ""
+    kind: "postgres"
+  auth:
+    uri: ""
+    kind: "postgres"
+
+secrets_manager:
+  kind: env
+

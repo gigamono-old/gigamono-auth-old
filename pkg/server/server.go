@@ -6,28 +6,26 @@ import (
 	"net"
 
 	"github.com/sageflow/sageauth/internal/proto"
+	"github.com/sageflow/sageflow/pkg/inits"
 
-	"github.com/sageflow/sageflow/pkg/database"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 // AuthServer is a grpc server for managing authentication and authorisation.
 type AuthServer struct {
-	Port   string
+	inits.App
 }
 
 // NewAuthServer creates a new server instance.
-func NewAuthServer(db *database.DB) AuthServer {
-	return AuthServer{}
+func NewAuthServer(app inits.App) AuthServer {
+	return AuthServer{app}
 }
 
 // Listen starts a new gRPC server that listens on specified port.
-func (server *AuthServer) Listen(port string) error {
-	server.Port = port // Set port.
-
+func (server *AuthServer) Listen() error {
 	// Listen on port using TCP.
-	listener, err := net.Listen("tcp", ":"+server.Port)
+	listener, err := net.Listen("tcp", fmt.Sprint(":", server.Config.Server.Auth.Port))
 	if err != nil {
 		return err
 	}
