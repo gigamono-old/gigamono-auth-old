@@ -1,50 +1,46 @@
 package server
 
 import (
-	"context"
-	"fmt"
 	"net"
 
-	"github.com/sageflow/sageauth/internal/proto"
+	"github.com/gin-gonic/gin"
 	"github.com/sageflow/sageflow/pkg/inits"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/soheilhy/cmux"
+	"golang.org/x/sync/errgroup"
 )
 
 // AuthServer is a grpc server for managing authentication and authorisation.
 type AuthServer struct {
+	*gin.Engine
 	inits.App
 }
 
 // NewAuthServer creates a new server instance.
 func NewAuthServer(app inits.App) AuthServer {
-	return AuthServer{app}
+	return AuthServer{
+		Engine: gin.Default(),
+		App:    app,
+	}
 }
 
-// Listen starts a new gRPC server that listens on specified port.
+// Listen makes the server listen on specified port.
 func (server *AuthServer) Listen() error {
-	// Listen on port using TCP.
-	listener, err := net.Listen("tcp", fmt.Sprint(":", server.Config.Server.Auth.Port))
+	// Listener on TCP port.
+	// listener, err := net.Listen("tcp", fmt.Sprint(":", server.Config.Server.Auth.Port))
+	listener, err := net.Listen("tcp", "127.0.0.1:3002")
 	if err != nil {
 		return err
 	}
 
-	grpcServer := grpc.NewServer() // Create a gRPC server.
+	// Create multiplexer and delegate content-types.
+	multiplexer := cmux.New(listener)
+	grpcListener := multiplexer.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
+	httpListener := multiplexer.Match(cmux.HTTP1Fast())
 
-	// Register gRPC service.
-	proto.RegisterAuthServiceServer(grpcServer, server)
-	reflection.Register(grpcServer)
-
-	return grpcServer.Serve(listener) // Listen for requests.
-}
-
-// SayHello says Hello
-func (server *AuthServer) SayHello(ctx context.Context, msg *proto.Message) (*proto.Message, error) {
-	authMsg := "Auth replies: " + msg.Content
-	fmt.Println(authMsg)
-	response := proto.Message{
-		Content: authMsg,
-	}
-	return &response, nil
+	// Run servers concurrently and sync errors.
+	grp := new(errgroup.Group)
+	grp.Go(func() error { return server.grpcServe(grpcListener) })
+	grp.Go(func() error { return server.httpServe(httpListener) })
+	grp.Go(func() error { return multiplexer.Serve() })
+	return grp.Wait()
 }

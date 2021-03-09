@@ -11,7 +11,7 @@ func main() {
 	// Initialises app.
 	app, err := inits.NewApp("Auth")
 	if err != nil {
-		logs.FmtPrintln("Unable to connect to database; Database is needed to continue: ", err)
+		logs.FmtPrintln("Unable to initialize auth:", err)
 		return
 	}
 
