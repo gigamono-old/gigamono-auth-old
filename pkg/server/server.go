@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/gin-gonic/gin"
@@ -26,8 +27,7 @@ func NewAuthServer(app inits.App) AuthServer {
 // Listen makes the server listen on specified port.
 func (server *AuthServer) Listen() error {
 	// Listener on TCP port.
-	// listener, err := net.Listen("tcp", fmt.Sprint(":", server.Config.Server.Auth.Port))
-	listener, err := net.Listen("tcp", "127.0.0.1:3002")
+	listener, err := net.Listen("tcp", fmt.Sprint(":", server.Config.Services.Types.Auth.Port))
 	if err != nil {
 		return err
 	}
