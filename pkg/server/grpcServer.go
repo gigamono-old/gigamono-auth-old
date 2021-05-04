@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/sageflow/sageflow/pkg/logs"
-	"github.com/sageflow/sageflow/pkg/services/proto/generated"
+	"github.com/gigamono/gigamono/pkg/logs"
+	"github.com/gigamono/gigamono/pkg/services/proto/generated"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

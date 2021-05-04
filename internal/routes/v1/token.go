@@ -3,8 +3,8 @@ package v1
 import (
 	"net/http"
 
+	"github.com/gigamono/gigamono/pkg/inits"
 	"github.com/gin-gonic/gin"
-	"github.com/sageflow/sageflow/pkg/inits"
 )
 
 // HandleTokenRoutes handles "/token" routes.

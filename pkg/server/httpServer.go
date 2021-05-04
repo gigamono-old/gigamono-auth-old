@@ -4,7 +4,7 @@ import (
 	"net"
 	"net/http"
 
-	routes "github.com/sageflow/sageauth/internal/routes/v1"
+	routes "github.com/gigamono/gigamono-auth/internal/routes/v1"
 )
 
 func (server *AuthServer) httpServe(listener net.Listener) error {
