@@ -4,7 +4,9 @@ import (
 	"net"
 	"net/http"
 
-	routes "github.com/gigamono/gigamono-auth/internal/routes/v1"
+	"github.com/gigamono/gigamono-auth/internal/rest"
+	"github.com/gigamono/gigamono/pkg/services/rest/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 func (server *AuthServer) httpServe(listener net.Listener) error {
@@ -19,6 +21,9 @@ func (server *AuthServer) httpServe(listener net.Listener) error {
 }
 
 func (server *AuthServer) setRoutes() {
-	v1 := server.Group("/v1")
-	routes.HandleTokenRoutes(v1, &server.App)
+	// Add middlewares.
+	server.Use(gin.CustomRecovery(middleware.PanicHandler))
+
+	v1Group := server.Group("/rest/v1")
+	rest.V1Delegate(v1Group, &server.App)
 }

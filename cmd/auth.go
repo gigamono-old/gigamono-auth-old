@@ -11,13 +11,13 @@ func main() {
 	// Initialises app.
 	app, err := inits.NewApp("Auth")
 	if err != nil {
-		logs.FmtPrintln("Unable to initialize auth:", err)
+		logs.FmtPrintln("initialising auth:", err)
 		return
 	}
 
 	// Start an auth gRPC server.
 	server := server.NewAuthServer(app)
 	if err := server.Listen(); err != nil {
-		logs.FmtPrintln("Unable to listen on port specified:", err)
+		logs.FmtPrintln("trying to listen on port specified:", err)
 	}
 }
