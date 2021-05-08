@@ -24,7 +24,7 @@ func oauthTokenHandler(app *inits.App) gin.HandlerFunc {
 		// Get x-www-form-urlencoded values.
 		var form OauthTokenForm
 		if err := ctx.ShouldBind(&form); err != nil {
-			response.SendFormBindErrors(ctx, err)
+			response.BindErrors(ctx, err)
 			return
 		}
 
@@ -33,7 +33,7 @@ func oauthTokenHandler(app *inits.App) gin.HandlerFunc {
 		case "password":
 			crud.SignUserUp(ctx)
 		default:
-			response.SendFormErrors(
+			response.FormErrors(
 				ctx,
 				errs.UnsupportedGrantType,
 				messages.Error["grant-type"].(string),
