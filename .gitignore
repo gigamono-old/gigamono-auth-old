@@ -4,3 +4,4 @@ public/
 .env
 tmp/
 logs/
+*.pem
