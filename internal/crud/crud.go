@@ -8,7 +8,7 @@ import (
 
 // SignUserUp signs a new user up.
 func SignUserUp(ctx *gin.Context) {
-	response.SendSuccess(
+	response.Success(
 		ctx,
 		messages.Success["user-created"].(string),
 		nil,

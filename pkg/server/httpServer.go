@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 
@@ -9,7 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *AuthServer) httpServe(listener net.Listener) error {
+func (server *AuthServer) httpServe() error {
+	listener, err := net.Listen(
+		"tcp",
+		fmt.Sprint(":", server.Config.Services.Types.Auth.PublicPort),
+	)
+	if err != nil {
+		return err
+	}
+
 	server.setRoutes() // Set routes.
 
 	// Use http server.
