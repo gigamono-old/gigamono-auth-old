@@ -13,7 +13,7 @@ import (
 func (server *AuthServer) grpcServe() error {
 	listener, err := net.Listen(
 		"tcp",
-		fmt.Sprint(":", server.Config.Services.Types.Auth.PrivatePort),
+		fmt.Sprint(":", server.Config.Services.Auth.Ports.Private),
 	)
 	if err != nil {
 		return err

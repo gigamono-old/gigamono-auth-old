@@ -13,7 +13,7 @@ import (
 func (server *AuthServer) httpServe() error {
 	listener, err := net.Listen(
 		"tcp",
-		fmt.Sprint(":", server.Config.Services.Types.Auth.PublicPort),
+		fmt.Sprint(":", server.Config.Services.Auth.Ports.Public),
 	)
 	if err != nil {
 		return err
