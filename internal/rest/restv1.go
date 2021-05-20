@@ -10,4 +10,5 @@ import (
 func V1Delegate(group *gin.RouterGroup, app *inits.App) {
 	group.POST("/pre-session", crud.PreSession(app))
 	group.POST("/signup", crud.SignUserUp(app))
+	group.POST("/signin", crud.SignUserIn(app))
 }
