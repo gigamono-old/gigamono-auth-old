@@ -19,6 +19,7 @@ type SignInResponse struct {
 // SignUserIn authenticates a user using provided an email, a password and presession tokens.
 func SignUserIn(app *inits.App) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// TODO: Sec: Validation
 		// Using Basic Authentication Scheme, get email and password.
 		email, plaintextPassword, err := session.GetBasicAuthCreds(ctx)
 		if err != nil {

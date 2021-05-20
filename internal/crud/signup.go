@@ -19,6 +19,7 @@ type SignUpResponse struct {
 // SignUserUp adds a new user to the system provided an email, a password and presession tokens.
 func SignUserUp(app *inits.App) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// TODO: Sec: Validation
 		// Using Basic Authentication Scheme, get email and password.
 		email, plaintextPassword, err := session.GetBasicAuthCreds(ctx)
 		if err != nil {
@@ -45,8 +46,9 @@ func SignUserUp(app *inits.App) gin.HandlerFunc {
 			))
 		}
 
+		// TODO: Duplicate email check. Get from pg error?
+
 		// Create new user account access in db.
-		// TODO: duplicate constraint check. ???
 		userID, err := controllers.CreateUserAccountCreds(&app.DB, email, passwordHash)
 		if err != nil {
 			panic(errs.NewSystemError(

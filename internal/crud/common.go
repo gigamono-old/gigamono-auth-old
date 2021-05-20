@@ -39,7 +39,7 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 
 	// Check for pre-session credentials and their validity.
 	// Presession helps us prevent login CSRF. More info in ./presession.go.
-	if err := session.VerifyPreSessionCredentials(ctx, []byte(privateKey), []byte([]byte(publicKey))); err != nil {
+	if err := session.VerifyPreSessionCredentials(ctx, []byte(publicKey)); err != nil {
 		switch err.(type) {
 		case *errs.ClientError:
 			return err.(*errs.ClientError)
@@ -62,8 +62,8 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 		))
 	}
 
-	// Sign/hash plaintext CSRF ID with private key.
-	signedCSRFID, err := auth.GenerateSignedCSRFID(plaintextCSRFID, []byte(privateKey))
+	// Sign/hash plaintext CSRF ID with publicKey key.
+	signedCSRFID, err := auth.GenerateSignedCSRFID(plaintextCSRFID, []byte(publicKey))
 	if err != nil {
 		panic(errs.NewSystemError(
 			messages.Error[sessionType].(string),
