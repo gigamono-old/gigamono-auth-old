@@ -30,9 +30,10 @@ func (server *AuthServer) httpServe() error {
 }
 
 func (server *AuthServer) setRoutes() {
-	// Add middlewares.
+	// Add a custom panic handler middleware.
 	server.Use(gin.CustomRecovery(middleware.PanicHandler))
 
+	// Handlers
 	v1Group := server.Group("/rest/v1")
 	rest.V1Delegate(v1Group, &server.App)
 }

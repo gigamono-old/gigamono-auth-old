@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// Initialises app.
-	app, err := inits.NewApp("Auth")
+	app, err := inits.NewApp(inits.Auth)
 	if err != nil {
 		logs.FmtPrintln("initialising auth:", err)
 		return

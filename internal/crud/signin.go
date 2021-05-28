@@ -1,11 +1,11 @@
 package crud
 
 import (
-	"github.com/gigamono/gigamono/pkg/auth"
 	controllers "github.com/gigamono/gigamono/pkg/database/controllers/auth"
 	"github.com/gigamono/gigamono/pkg/errs"
 	"github.com/gigamono/gigamono/pkg/inits"
 	"github.com/gigamono/gigamono/pkg/messages"
+	"github.com/gigamono/gigamono/pkg/security"
 	"github.com/gigamono/gigamono/pkg/services/rest/response"
 	"github.com/gigamono/gigamono/pkg/services/session"
 	"github.com/gin-gonic/gin"
@@ -20,6 +20,8 @@ type SignInResponse struct {
 func SignUserIn(app *inits.App) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// TODO: Sec: Validation
+		sessionType := "signin"
+
 		// Using Basic Authentication Scheme, get email and password.
 		email, plaintextPassword, err := session.GetBasicAuthCreds(ctx)
 		if err != nil {
@@ -29,7 +31,7 @@ func SignUserIn(app *inits.App) gin.HandlerFunc {
 				return
 			default:
 				panic(errs.NewSystemError(
-					messages.Error["signin"].(string),
+					messages.Error[sessionType].(string),
 					"getting basic auth credentials",
 					err,
 				))
@@ -40,26 +42,32 @@ func SignUserIn(app *inits.App) gin.HandlerFunc {
 		accountCreds, err := controllers.GetUserAccountCreds(&app.DB, email)
 		if err != nil {
 			panic(errs.NewSystemError(
-				messages.Error["signin"].(string),
+				messages.Error[sessionType].(string),
 				"getting user account credentials in the database",
 				err,
 			))
 		}
 
 		// Compare passwords.
-		if err = auth.VerifyPasswordHash(plaintextPassword, accountCreds.PasswordHash); err != nil {
+		if err = security.VerifyPasswordHash(plaintextPassword, accountCreds.PasswordHash); err != nil {
 			panic(errs.NewSystemError(
-				messages.Error["signin"].(string),
+				messages.Error[sessionType].(string),
 				"verifying user's password",
 				err,
 			))
 		}
 
-		// Establish a session.
-		if clientErr := establishASession(ctx, app, "signin", accountCreds.ID.String()); clientErr != nil {
+		// Get security keys.
+		privateKey, publicKey := getSecurityKeys(app, sessionType)
+
+		// Verify pre-session.
+		if clientErr := verifyPreSession(ctx, sessionType, publicKey); clientErr != nil {
 			response.BadRequestErrors(ctx, clientErr)
 			return
 		}
+
+		// Generate session tokens.
+		generateSessionTokens(ctx, app, sessionType, accountCreds.ID.String(), privateKey, publicKey)
 
 		response.Success(
 			ctx,

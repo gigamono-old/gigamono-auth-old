@@ -1,22 +1,16 @@
 package crud
 
 import (
-	"github.com/gigamono/gigamono/pkg/auth"
 	"github.com/gigamono/gigamono/pkg/errs"
 	"github.com/gigamono/gigamono/pkg/inits"
 	"github.com/gigamono/gigamono/pkg/messages"
+	"github.com/gigamono/gigamono/pkg/security"
 	"github.com/gigamono/gigamono/pkg/services/session"
 	"github.com/gin-gonic/gin"
 )
 
-// establishASession starts a new user session.
-//
-// It contains operations common to both sign-in and sign-up, which include
-// verifying existing pre-session ids,
-// creating new csrf id,
-// creating access and refresh tokens, and
-// sending them in response.
-func establishASession(ctx *gin.Context, app *inits.App, sessionType string, userID string) *errs.ClientError {
+// getSecurityKeys gets the service's private and public keys.
+func getSecurityKeys(app *inits.App, sessionType string) ([]byte, []byte) {
 	// Get public key.
 	publicKey, err := app.Secrets.Get("AUTH_PUBLIC_KEY")
 	if err != nil {
@@ -37,11 +31,16 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 		))
 	}
 
+	return []byte(privateKey), []byte(publicKey)
+}
+
+// verifyPreSession verifies existing pre-session ids, creating new csrf id,
+func verifyPreSession(ctx *gin.Context, sessionType string, publicKey []byte) *errs.ClientError {
 	// Check for pre-session credentials and their validity.
 	// Presession helps us prevent login CSRF. More info in ./presession.go.
-	if err := session.VerifyPreSessionCredentials(ctx, []byte(publicKey)); err != nil {
+	if err := session.VerifyPreSessionCredentials(ctx, publicKey); err != nil {
 		switch err.(type) {
-		case *errs.ClientError:
+		case errs.ClientError:
 			return err.(*errs.ClientError)
 		default:
 			panic(errs.NewSystemError(
@@ -52,8 +51,13 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 		}
 	}
 
+	return nil
+}
+
+// generateSessionTokens creates new CSRF IDs, access and refresh tokens, and sending them in response.
+func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string, userID string, privateKey []byte, publicKey []byte) {
 	// Generate new session random CSRF ID.
-	plaintextCSRFID, err := auth.GenerateRandomBase64(32)
+	plaintextCSRFID, err := security.GenerateRandomBase64(32)
 	if err != nil {
 		panic(errs.NewSystemError(
 			messages.Error[sessionType].(string),
@@ -63,7 +67,7 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 	}
 
 	// Sign/hash plaintext CSRF ID with publicKey key.
-	signedCSRFID, err := auth.GenerateSignedCSRFID(plaintextCSRFID, []byte(publicKey))
+	signedCSRFID, err := security.GenerateSignedCSRFID(plaintextCSRFID, publicKey)
 	if err != nil {
 		panic(errs.NewSystemError(
 			messages.Error[sessionType].(string),
@@ -73,9 +77,9 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 	}
 
 	// Generate access token.
-	accessToken, err := auth.GenerateSignedJWT(
-		auth.GenerateSessionClaims(userID, signedCSRFID, sessionType, 86400), // Expires in a day.
-		[]byte(privateKey),
+	accessToken, err := security.GenerateSignedJWT(
+		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionAccess, 86400), // Expires in a day.
+		privateKey,
 	)
 	if err != nil {
 		panic(errs.NewSystemError(
@@ -87,9 +91,9 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 
 	// Generate refresh token.
 	// SEC: Refresh tokens have action "refresh" to distinguish them from access tokens and pre-session tokens.
-	refreshToken, err := auth.GenerateSignedJWT(
-		auth.GenerateSessionClaims(userID, signedCSRFID, "refresh", 86400), // Expires in a day.
-		[]byte(privateKey),
+	refreshToken, err := security.GenerateSignedJWT(
+		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionRefresh, 604800), // Expires in a week.
+		privateKey,
 	)
 	if err != nil {
 		panic(errs.NewSystemError(
@@ -107,6 +111,4 @@ func establishASession(ctx *gin.Context, app *inits.App, sessionType string, use
 			err,
 		))
 	}
-
-	return nil
 }
