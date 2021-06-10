@@ -41,7 +41,8 @@ func verifyPreSession(ctx *gin.Context, sessionType string, publicKey []byte) *e
 	if err := session.VerifyPreSessionCredentials(ctx, publicKey); err != nil {
 		switch err.(type) {
 		case errs.ClientError:
-			return err.(*errs.ClientError)
+			clientErr := err.(errs.ClientError)
+			return &clientErr
 		default:
 			panic(errs.NewSystemError(
 				messages.Error[sessionType].(string),
