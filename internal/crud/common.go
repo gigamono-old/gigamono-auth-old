@@ -79,7 +79,8 @@ func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string,
 
 	// Generate access token.
 	accessToken, err := security.GenerateSignedJWT(
-		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionAccess, 86400), // Expires in a day.
+		// TODO: Should expire in less time.
+		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionAccess, 604800), // Expires in a week.
 		privateKey,
 	)
 	if err != nil {
