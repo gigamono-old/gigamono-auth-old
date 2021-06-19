@@ -1,7 +1,7 @@
 package crud
 
 import (
-	controllers "github.com/gigamono/gigamono/pkg/database/controllers/auth"
+	"github.com/gigamono/gigamono/pkg/database/models/auth"
 	"github.com/gigamono/gigamono/pkg/errs"
 	"github.com/gigamono/gigamono/pkg/inits"
 	"github.com/gigamono/gigamono/pkg/messages"
@@ -59,8 +59,8 @@ func SignUserUp(app *inits.App) gin.HandlerFunc {
 
 		// TODO: Duplicate email check. Get from pg error?
 		// Create new user account access in db.
-		userID, err := controllers.CreateUserAccountCreds(&app.DB, email, passwordHash)
-		if err != nil {
+		accountCreds := auth.UserAccountCreds{Email: email, PasswordHash: passwordHash}
+		if err = user.Create(&app.DB); err != nil {
 			panic(errs.NewSystemError(
 				messages.Error[sessionType].(string),
 				"resgistering user account credentials in the database",
@@ -69,12 +69,12 @@ func SignUserUp(app *inits.App) gin.HandlerFunc {
 		}
 
 		// Generate session tokens.
-		generateSessionTokens(ctx, app, sessionType, userID.String(), privateKey, publicKey)
+		generateSessionTokens(ctx, app, sessionType, accountCreds.ID.String(), privateKey, publicKey)
 
 		response.Success(
 			ctx,
 			messages.Success["user-created"].(string),
-			SignUpResponse{ID: userID.String()},
+			SignUpResponse{ID: accountCreds.ID.String()},
 		)
 	}
 }

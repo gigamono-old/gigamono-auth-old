@@ -1,7 +1,7 @@
 package crud
 
 import (
-	controllers "github.com/gigamono/gigamono/pkg/database/controllers/auth"
+	"github.com/gigamono/gigamono/pkg/database/models/auth"
 	"github.com/gigamono/gigamono/pkg/errs"
 	"github.com/gigamono/gigamono/pkg/inits"
 	"github.com/gigamono/gigamono/pkg/messages"
@@ -39,8 +39,8 @@ func SignUserIn(app *inits.App) gin.HandlerFunc {
 		}
 
 		// Create new user account access in db.
-		accountCreds, err := controllers.GetUserAccountCreds(&app.DB, email)
-		if err != nil {
+		accountCreds := auth.UserAccountCreds{Email: email}
+		if err = accountCreds.GetByEmail(&app.DB); err != nil {
 			panic(errs.NewSystemError(
 				messages.Error[sessionType].(string),
 				"getting user account credentials in the database",
