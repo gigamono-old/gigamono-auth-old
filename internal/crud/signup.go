@@ -60,7 +60,7 @@ func SignUserUp(app *inits.App) gin.HandlerFunc {
 		// TODO: Duplicate email check. Get from pg error?
 		// Create new user account access in db.
 		accountCreds := auth.UserAccountCreds{Email: email, PasswordHash: passwordHash}
-		if err = user.Create(&app.DB); err != nil {
+		if err = accountCreds.Create(&app.DB); err != nil {
 			panic(errs.NewSystemError(
 				messages.Error[sessionType].(string),
 				"resgistering user account credentials in the database",
