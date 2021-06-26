@@ -39,6 +39,7 @@ func PreSession(app *inits.App) gin.HandlerFunc {
 		}
 
 		// Sign/hash plaintext CSRF ID with private key.
+		// TODO: Is there really a point to signing CSRF IDs inside JWT claims? JWT itself already requires signing.
 		signedCSRFID, err := security.GenerateSignedCSRFID(plaintextCSRFID, publicKey)
 		if err != nil {
 			panic(errs.NewSystemError(

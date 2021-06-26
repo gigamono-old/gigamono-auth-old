@@ -67,7 +67,7 @@ func SignUserIn(app *inits.App) gin.HandlerFunc {
 		}
 
 		// Generate session tokens.
-		generateSessionTokens(ctx, app, sessionType, accountCreds.ID.String(), privateKey, publicKey)
+		generateSessionTokens(ctx, app, sessionType, accountCreds.ID.String(), accountCreds.Email, privateKey, publicKey)
 
 		response.Success(
 			ctx,

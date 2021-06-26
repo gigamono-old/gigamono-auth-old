@@ -56,7 +56,7 @@ func verifyPreSession(ctx *gin.Context, sessionType string, publicKey []byte) *e
 }
 
 // generateSessionTokens creates new CSRF IDs, access and refresh tokens, and sending them in response.
-func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string, userID string, privateKey []byte, publicKey []byte) {
+func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string, userID string, email string, privateKey []byte, publicKey []byte) {
 	// Generate new session random CSRF ID.
 	plaintextCSRFID, err := security.GenerateRandomBase64(32)
 	if err != nil {
@@ -68,6 +68,7 @@ func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string,
 	}
 
 	// Sign/hash plaintext CSRF ID with publicKey key.
+	// TODO: Is there really a point to signing CSRF IDs inside JWT claims? JWT itself already requires signing.
 	signedCSRFID, err := security.GenerateSignedCSRFID(plaintextCSRFID, publicKey)
 	if err != nil {
 		panic(errs.NewSystemError(
@@ -79,8 +80,8 @@ func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string,
 
 	// Generate access token.
 	accessToken, err := security.GenerateSignedJWT(
-		// TODO: Should expire in less time.
-		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionAccess, 604800), // Expires in a week.
+		// TODO: Sec: Should expire in less time.
+		security.GenerateSessionClaims(userID, email, signedCSRFID, security.SessionAccess, 604800), // Expires in a week.
 		privateKey,
 	)
 	if err != nil {
@@ -94,7 +95,7 @@ func generateSessionTokens(ctx *gin.Context, app *inits.App, sessionType string,
 	// Generate refresh token.
 	// SEC: Refresh tokens have action "refresh" to distinguish them from access tokens and pre-session tokens.
 	refreshToken, err := security.GenerateSignedJWT(
-		security.GenerateSessionClaims(userID, signedCSRFID, security.SessionRefresh, 604800), // Expires in a week.
+		security.GenerateSessionClaims(userID, email, signedCSRFID, security.SessionRefresh, 604800), // Expires in a week.
 		privateKey,
 	)
 	if err != nil {
